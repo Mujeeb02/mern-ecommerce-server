@@ -14,8 +14,9 @@ import cors from "cors";
 config({path:"./.env"});
 const port = process.env.PORT || 4000;
 const stripeKey=process.env.STRIPE_Key || ""
+const mongoURL = process.env.MONGO_URL || "";
 const app = express();
-connectDB();
+connectDB(mongoURL);
 app.use(cors())
 app.use(express.json());
 // app.use(express.urlencoded({ extended: true }));

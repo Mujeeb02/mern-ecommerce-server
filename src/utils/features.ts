@@ -2,13 +2,15 @@ import mongoose, { Document } from "mongoose";
 import { InvalidateCacheProps, OrderItemsType } from "../types/type.js";
 import { Product } from "../models/product.js";
 import { mynodecache } from "../app.js";
-export const connectDB = () => {
-    mongoose.connect(process.env.DATABASE_URL!, {
-        dbName: "Ecommerce_2024",
-    })
-        .then(() => { console.log("Database connected succesfully...") })
-        .catch((e) => { console.log("something error happened in database connection") })
-}
+export const connectDB = (uri: string) => {
+    console.log(uri)
+    mongoose
+      .connect(uri, {
+        dbName: "Ecommerce_24",
+      })
+      .then((c) => console.log(`DB Connected to ${c.connection.host}`))
+      .catch((e) => console.log(e));
+  };
 
 export const invalidateCache = async ({ product, order, admin, userId, orderId, productId }: InvalidateCacheProps) => {
     if (product) {
