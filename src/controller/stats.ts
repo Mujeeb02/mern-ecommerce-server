@@ -359,7 +359,6 @@ export const getBarCharts = async (req: Request, res: Response, next: NextFuncti
                 sixMonthUsersPromise,
                 twelveMonthOrdersPromise,
             ]);
-            console.log(products);
             const productCounts = getChartData({ length: 6, today, docArr: products });
             const usersCounts = getChartData({ length: 6, today, docArr: users });
             const ordersCounts = getChartData({ length: 12, today, docArr: orders });
@@ -383,7 +382,67 @@ export const getBarCharts = async (req: Request, res: Response, next: NextFuncti
     }
 }
 
-export const getLineCharts = async (req: Request, res: Response, next: NextFunction) => {
+// export const getLineCharts = async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//         let charts;
+//         const key = "admin-line-charts";
+
+//         if (mynodecache.has(key)) charts = JSON.parse(mynodecache.get(key) as string);
+//         else {
+//             const today = new Date();
+
+//             const twelveMonthsAgo = new Date();
+//             twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+
+//             const baseQuery = {
+//                 createdAt: {
+//                     $gte: twelveMonthsAgo,
+//                     $lte: today,
+//                 },
+//             }
+
+//             const [products, users, orders] = await Promise.all([
+//                 Product.find(baseQuery).select("createdAt"),
+//                 User.find(baseQuery).select("createdAt"),
+//                 Order.find(baseQuery).select(["createdAt","discount","total"]),
+//             ]);
+//             console.log(products);
+//             const productCounts = getChartData({ length: 12, today, docArr: products });
+//             const usersCounts = getChartData({ length: 12, today, docArr: users });
+//             const discount = getChartData({
+//                 length: 12,
+//                 today,
+//                 docArr: orders,
+//                 property: "discount",
+//               });
+//               const revenue = getChartData({
+//                 length: 12,
+//                 today,
+//                 docArr: orders,
+//                 property: "total",
+//               });
+
+//               charts = {
+//                 users: usersCounts,
+//                 products: productCounts,
+//                 discount,
+//                 revenue,
+//               };
+
+//             mynodecache.set(key, JSON.stringify(charts));
+//         }
+
+//         return res.status(200).json({
+//             success: true,
+//             charts,
+//         })
+//     } catch (error) {
+//         console.error("Error in getLineCharts:", error);
+//         return res.status(500).json({ success: false, message: "Internal Server Error" });
+//     }
+// }
+
+export const getLineCharts = async (res: Response) => {
     try {
         let charts;
         const key = "admin-line-charts";
@@ -400,35 +459,35 @@ export const getLineCharts = async (req: Request, res: Response, next: NextFunct
                     $gte: twelveMonthsAgo,
                     $lte: today,
                 },
-            }
+            };
 
             const [products, users, orders] = await Promise.all([
                 Product.find(baseQuery).select("createdAt"),
                 User.find(baseQuery).select("createdAt"),
-                Order.find(baseQuery).select(["createdAt","discount","total"]),
+                Order.find(baseQuery).select(["createdAt", "discount", "total"]),
             ]);
-            console.log(products);
-            const productCounts = getChartData({ length: 12, today, docArr: products });
-            const usersCounts = getChartData({ length: 12, today, docArr: users });
+
+            const productCounts = getChartData({ length:12, docArr: products, today });
+            const usersCounts = getChartData({ length:12, docArr: users, today });
             const discount = getChartData({
                 length: 12,
                 today,
                 docArr: orders,
                 property: "discount",
-              });
-              const revenue = getChartData({
+            });
+            const revenue = getChartData({
                 length: 12,
                 today,
                 docArr: orders,
                 property: "total",
-              });
-          
-              charts = {
+            });
+
+            charts = {
                 users: usersCounts,
                 products: productCounts,
                 discount,
                 revenue,
-              };
+            };
 
             mynodecache.set(key, JSON.stringify(charts));
         }
@@ -436,9 +495,10 @@ export const getLineCharts = async (req: Request, res: Response, next: NextFunct
         return res.status(200).json({
             success: true,
             charts,
-        })
-    } catch (error) {
+        });
+    }
+    catch (error) {
         console.error("Error in getLineCharts:", error);
         return res.status(500).json({ success: false, message: "Internal Server Error" });
     }
-}
+};

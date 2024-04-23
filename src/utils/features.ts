@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Document } from "mongoose";
 import { InvalidateCacheProps, OrderItemsType } from "../types/type.js";
 import { Product } from "../models/product.js";
 import { mynodecache } from "../app.js";
@@ -87,37 +87,36 @@ export const getInventories = async ({
 };
 
 interface MyDocument extends Document {
-    createdAt: Date;
+    createdAt?: Date;
     discount?: number;
     total?: number;
-}
-type FuncProps<T> = {
+  }
+  type FuncProps = {
     length: number;
-    docArr: T[];
+    docArr: MyDocument[];
     today: Date;
     property?: "discount" | "total";
-};
-
-export const getChartData = <T extends MyDocument>({
+  };
+  
+  export const getChartData = ({
     length,
     docArr,
     today,
     property,
-}: FuncProps<T>) => {
+  }: FuncProps) => {
     const data: number[] = new Array(length).fill(0);
-
-    docArr.forEach((i: any) => {
-        const creationDate = i.createdAt;
-        const monthDiff = (today.getMonth() - creationDate.getMonth() + 12) % 12;
-
-        if (monthDiff < length) {
-            if (property) {
-                data[length - monthDiff - 1] += i[property]!;
-            } else {
-                data[length - monthDiff - 1] += 1;
-            }
+  
+    docArr.forEach((i) => {
+      const creationDate = i.createdAt!;
+      const monthDiff = (today.getMonth() - creationDate.getMonth() + 12) % 12;
+      if (monthDiff < length) {
+        if (property) {
+          data[length - monthDiff - 1] += i[property]!;
+        } else {
+          data[length - monthDiff - 1] += 1;
         }
+      }
     });
-
+  
     return data;
-};
+  };

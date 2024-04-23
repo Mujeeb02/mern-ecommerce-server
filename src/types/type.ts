@@ -77,3 +77,36 @@ export interface NewOrderRequestBody{
     total:number;
     orderItems:OrderItemsType[];
 }
+
+import { Document, Types } from 'mongoose';
+
+interface IOrderItem {
+    name: string;
+    photo: string;
+    price: number;
+    stock: number;
+    quantity: number;
+    productId: Types.ObjectId;
+}
+
+interface IOrder extends Document {
+    shippingInfo: {
+        address: string;
+        city: string;
+        state: string;
+        country: string;
+        pinCode: number;
+    };
+    user: string;
+    subtotal: number;
+    tax: number;
+    shippingCharges: number;
+    discount: number;
+    total: number;
+    status: "Processing" | "Shipped" | "Delivered";
+    orderItems: IOrderItem[];
+    createdAt: Date; // Add createdAt property
+    updatedAt: Date; // Add updatedAt property
+}
+
+export default IOrder;
