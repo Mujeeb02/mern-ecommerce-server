@@ -12,7 +12,7 @@ import statsRoute from "./routes/stats.js"
 import Stripe from "stripe";
 import cors from "cors";
 config({path:"./.env"});
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 5000;
 const stripeKey=process.env.STRIPE_Key || ""
 const mongoURL = process.env.MONGO_URL || "";
 const app = express();

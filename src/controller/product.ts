@@ -7,11 +7,13 @@ import { rm } from "fs";
 import { promises } from "dns";
 import { mynodecache } from "../app.js";
 import { invalidateCache } from "../utils/features.js";
+
 export const newProduct = TryCatch(
     async (
         req: Request<{}, {}, newproductRequestbody>,
         res: Response,
-        next) => {
+        next: NextFunction
+    ) => {
 
         const { name, price, stock, category } = req.body;
         const photo = req.file;
@@ -20,27 +22,40 @@ export const newProduct = TryCatch(
             return res.status(400).json({
                 success: false,
                 message: "Please add photo",
-            })
+            });
         }
 
         if (!name || !price || !stock || !category) {
             rm(photo.path, () => {
-                console.log("Photo is not saved in storage...")
-            })
-            return next(new ErrorHandler("Please add all fields first..", 400))
+                console.log("Photo is not saved in storage...");
+            });
+            return next(new ErrorHandler("Please add all fields first.", 400));
         }
 
-        const product = await Product.create({ name, photo: photo?.path, price, stock, category: category.toLowerCase() });
+        // Replace backslashes with forward slashes
+        const photoPath = photo.path.replace(/\\/g, '/');
+
+        const product = await Product.create({
+            name,
+            photo: photoPath,
+            price,
+            stock,
+            category: category.toLowerCase(),
+        });
+
         await invalidateCache({ product: true, admin: true });
+
         res.status(200).json({
             success: true,
-            message: `${product.name} inserted into the database....`
-        })
+            message: `${product.name} inserted into the database.`,
+        });
     }
-)
+);
+
 //Revalidate on adding new product ,updation and deletion of any product...
 export const getLatestProducts = TryCatch(
     async (req, res, next) => {
+        console.log("in the latest product page")
         let products;
         if (mynodecache.has("latestproducts")) {
             products = JSON.parse(mynodecache.get("latestproducts") as string)
@@ -80,6 +95,7 @@ export const getCategories = TryCatch(
 
 export const getAdminProducts = TryCatch(
     async (req, res, next) => {
+        console.log("in the admin products")
         let adminproducts;
         if (mynodecache.has("products")) {
             adminproducts = JSON.parse(mynodecache.get("adminproducts") as string);
