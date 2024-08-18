@@ -78,7 +78,7 @@ export const getLatestProducts = TryCatch(
 
 export const getCategories = TryCatch(
     async (req: Request, res: Response, next: NextFunction) => {
-        let categories;
+        let categories: { category: string; imageUrl: string }[] = [];
 
         if (mynodecache.has("categories")) {
             categories = JSON.parse(mynodecache.get("categories") as string);
@@ -88,7 +88,7 @@ export const getCategories = TryCatch(
                 {
                     $group: {
                         _id: "$category",
-                        imageUrl: { $first: "$photo" }, // Assuming "image" is the field with the image URL
+                        imageUrl: { $first: "$photo" }, // Assuming "photo" is the field with the image URL
                     },
                 },
                 {
@@ -106,7 +106,7 @@ export const getCategories = TryCatch(
         res.status(200).json({
             success: true,
             data: categories,
-            message: `Categories fetched successfully.`,
+            message: "Categories fetched successfully.",
         });
     }
 );
