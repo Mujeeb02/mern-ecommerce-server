@@ -11,7 +11,7 @@ import couponRoute from "./routes/payment.js"
 import statsRoute from "./routes/stats.js"
 import Stripe from "stripe";
 import cors from "cors";
-import cloudinary from "cloudinary";
+import cloudinary from "cloudinary"
 import dotenv from "dotenv";
 
 // Load environment variables from the .env file

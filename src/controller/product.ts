@@ -15,34 +15,31 @@ export const newProduct = TryCatch(
         next: NextFunction
     ) => {
         const { name, price, stock, category } = req.body;
-        const imageFiles = req.files as Express.Multer.File[];
-
-        if (!imageFiles || imageFiles.length === 0) {
+        const imageFile = req.file as Express.Multer.File; // Single image file
+        console.log(imageFile)
+        if (!imageFile) {
             return res.status(400).json({
                 success: false,
-                message: "Please add photo(s)",
+                message: "Please add a photo",
             });
         }
 
         if (!name || !price || !stock || !category) {
-            imageFiles.forEach((file) => {
-                rm(file.path, () => {
-                    console.log("Image not saved in storage...");
-                });
+            rm(imageFile.path, () => {
+                console.log("Image not saved in storage...");
             });
             return next(new ErrorHandler("Please add all fields first.", 400));
         }
 
-        // Upload images to Cloudinary
-        const imageUrls = await uploadImages(imageFiles);
+        // Upload image to Cloudinary
+        const imageUrl = await uploadImage(imageFile);
 
         const product = await Product.create({
             name,
-            photo: imageUrls[0], // Assuming the first image is the main photo
+            photo: imageUrl, // Single image URL
             price,
             stock,
             category: category.toLowerCase(),
-            images: imageUrls, // If your schema includes multiple images
         });
 
         await invalidateCache({ product: true, admin: true });
@@ -54,6 +51,7 @@ export const newProduct = TryCatch(
         });
     }
 );
+
 
 //Revalidate on adding new product ,updation and deletion of any product...
 export const getLatestProducts = TryCatch(
@@ -245,16 +243,11 @@ export const getAllProducts = TryCatch(
     }
 )
 
-async function uploadImages(imageFiles: Express.Multer.File[]) {
-    const uploadPromises = imageFiles.map(async (image) => {
-        const res = await cloudinary.v2.uploader.upload(image.path, {
-            folder: "products", // Specify a folder in Cloudinary for organized storage
-            use_filename: true,
-            unique_filename: false,
-        });
-        return res.secure_url; // Return the secure URL from Cloudinary
+async function uploadImage(imageFile: Express.Multer.File) {
+    const res = await cloudinary.v2.uploader.upload(imageFile.path, {
+        folder: "products", // Specify a folder in Cloudinary for organized storage
+        use_filename: true,
+        unique_filename: false,
     });
-
-    const imageUrls = await Promise.all(uploadPromises);
-    return imageUrls;
+    return res.secure_url; // Return the secure URL from Cloudinary
 }
