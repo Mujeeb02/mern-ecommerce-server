@@ -77,23 +77,39 @@ export const getLatestProducts = TryCatch(
 )
 
 export const getCategories = TryCatch(
-    async (req, res, next) => {
-        let categories
+    async (req: Request, res: Response, next: NextFunction) => {
+        let categories;
+
         if (mynodecache.has("categories")) {
-            categories = JSON.parse(mynodecache.get("categories") as string)
-        }
-        else {
-            categories = await Product.distinct("category");
+            categories = JSON.parse(mynodecache.get("categories") as string);
+        } else {
+            // Aggregation to get distinct categories with a representative image
+            categories = await Product.aggregate([
+                {
+                    $group: {
+                        _id: "$category",
+                        imageUrl: { $first: "$photo" }, // Assuming "image" is the field with the image URL
+                    },
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        category: "$_id",
+                        imageUrl: 1,
+                    },
+                },
+            ]);
+
             mynodecache.set("categories", JSON.stringify(categories));
         }
 
         res.status(200).json({
             success: true,
             data: categories,
-            message: `Categories fetched succesfully....`
-        })
+            message: `Categories fetched successfully.`,
+        });
     }
-)
+);
 
 export const getAdminProducts = TryCatch(
     async (req, res, next) => {
