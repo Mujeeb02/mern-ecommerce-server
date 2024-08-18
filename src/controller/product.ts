@@ -14,7 +14,7 @@ export const newProduct = TryCatch(
         res: Response,
         next: NextFunction
     ) => {
-        const { name, price, stock, category } = req.body;
+        const { name, description, price, stock, category } = req.body;
         const imageFile = req.file as Express.Multer.File; // Single image file
         console.log(imageFile)
         if (!imageFile) {
@@ -24,7 +24,7 @@ export const newProduct = TryCatch(
             });
         }
 
-        if (!name || !price || !stock || !category) {
+        if (!name || !description || !price || !stock || !category) {
             rm(imageFile.path, () => {
                 console.log("Image not saved in storage...");
             });
@@ -36,6 +36,7 @@ export const newProduct = TryCatch(
 
         const product = await Product.create({
             name,
+            description,
             photo: imageUrl, // Single image URL
             price,
             stock,

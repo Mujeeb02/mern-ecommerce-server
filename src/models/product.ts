@@ -4,6 +4,10 @@ const schema=new mongoose.Schema({
         type:String,
         required:[true,"Please enter name"]
     },
+    description:{
+        type:String,
+        required:[true,"Please enter description"]
+    },
     photo:{
         type:String,
         required:[true,"please enter photo"]
