@@ -13,6 +13,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@faker-js/faker": "^8.4.1",
     "@types/cors": "^2.8.17",
     "@types/validator": "^13.11.9",
     "cors": "^2.8.5",

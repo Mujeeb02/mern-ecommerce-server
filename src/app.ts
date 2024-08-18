@@ -11,11 +11,24 @@ import couponRoute from "./routes/payment.js"
 import statsRoute from "./routes/stats.js"
 import Stripe from "stripe";
 import cors from "cors";
-config({path:"./.env"});
+import cloudinary from "cloudinary";
+import dotenv from "dotenv";
+
+// Load environment variables from the .env file
+dotenv.config({ path: "./.env" });
+
+// Configure Cloudinary with environment variables
+cloudinary.v2.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_SECRET_KEY,
+});
+
 const port = process.env.PORT || 5000;
 const stripeKey=process.env.STRIPE_Key || ""
 const mongoURL = process.env.MONGO_URL || "";
 const app = express();
+
 connectDB(mongoURL);
 app.use(cors())
 app.use(express.json());

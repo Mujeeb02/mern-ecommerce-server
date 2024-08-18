@@ -7,40 +7,42 @@ import { rm } from "fs";
 import { promises } from "dns";
 import { mynodecache } from "../app.js";
 import { invalidateCache } from "../utils/features.js";
-
+import cloudinary from "cloudinary"
 export const newProduct = TryCatch(
     async (
         req: Request<{}, {}, newproductRequestbody>,
         res: Response,
         next: NextFunction
     ) => {
-
         const { name, price, stock, category } = req.body;
-        const photo = req.file;
+        const imageFiles = req.files as Express.Multer.File[];
 
-        if (!photo) {
+        if (!imageFiles || imageFiles.length === 0) {
             return res.status(400).json({
                 success: false,
-                message: "Please add photo",
+                message: "Please add photo(s)",
             });
         }
 
         if (!name || !price || !stock || !category) {
-            rm(photo.path, () => {
-                console.log("Photo is not saved in storage...");
+            imageFiles.forEach((file) => {
+                rm(file.path, () => {
+                    console.log("Image not saved in storage...");
+                });
             });
             return next(new ErrorHandler("Please add all fields first.", 400));
         }
 
-        // Replace backslashes with forward slashes
-        const photoPath = photo.path.replace(/\\/g, '/');
+        // Upload images to Cloudinary
+        const imageUrls = await uploadImages(imageFiles);
 
         const product = await Product.create({
             name,
-            photo: photoPath,
+            photo: imageUrls[0], // Assuming the first image is the main photo
             price,
             stock,
             category: category.toLowerCase(),
+            images: imageUrls, // If your schema includes multiple images
         });
 
         await invalidateCache({ product: true, admin: true });
@@ -48,6 +50,7 @@ export const newProduct = TryCatch(
         res.status(200).json({
             success: true,
             message: `${product.name} inserted into the database.`,
+            product,
         });
     }
 );
@@ -241,3 +244,17 @@ export const getAllProducts = TryCatch(
         })
     }
 )
+
+async function uploadImages(imageFiles: Express.Multer.File[]) {
+    const uploadPromises = imageFiles.map(async (image) => {
+        const res = await cloudinary.v2.uploader.upload(image.path, {
+            folder: "products", // Specify a folder in Cloudinary for organized storage
+            use_filename: true,
+            unique_filename: false,
+        });
+        return res.secure_url; // Return the secure URL from Cloudinary
+    });
+
+    const imageUrls = await Promise.all(uploadPromises);
+    return imageUrls;
+}
